@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rock Paper Scissors</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #282c36;
+            color: #ffffff;
+        }
+        .scoreboard {
+            font-size: 1.5rem;
+            margin: 20px 0;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        button {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #e68900;
+        }
+        .game-result {
+            font-size: 1.5rem;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<h1>Rock Paper Scissors</h1>
+<div class="scoreboard">
+    <p>Wins: <span id="wins">0</span></p>
+    <p>Losses: <span id="losses">0</span></p>
+    <p>Ties: <span id="ties">0</span></p>
+</div>
+
+<h2>Choose Your Move</h2>
+<div class="buttons">
+    <button onclick="playRoshambo('rock')">Rock</button>
+    <button onclick="playRoshambo('paper')">Paper</button>
+    <button onclick="playRoshambo('scissors')">Scissors</button>
+</div>
+
+<h2>Game Result</h2>
+<p id="result">Make your choice!</p>
+
+<h2>Reset Score</h2>
+<button onclick="resetScore()">Reset</button>
+
+<script>
+    async function fetchScore() {
+        try {
+            const response = await fetch("http://localhost:8080/score");
+            const data = await response.json();
+            document.getElementById("wins").innerText = data.wins;
+            document.getElementById("losses").innerText = data.losses;
+            document.getElementById("ties").innerText = data.ties;
+        } catch (error) {
+            console.error("Error fetching score:", error);
+        }
+    }
+
+    function getComputerChoice() {
+        const choices = ["rock", "paper", "scissors"];
+        return choices[Math.floor(Math.random() * 3)];
+    }
+
+    async function playRoshambo(playerChoice) {
+        const computerChoice = getComputerChoice();
+        let resultType;
+
+        if (playerChoice === computerChoice) {
+            resultType = "ties";
+        } else if (
+            (playerChoice === "rock" && computerChoice === "scissors") ||
+            (playerChoice === "paper" && computerChoice === "rock") ||
+            (playerChoice === "scissors" && computerChoice === "paper")
+        ) {
+            resultType = "wins";
+        } else {
+            resultType = "losses";
+        }
+
+        try {
+            await fetch(`http://localhost:8080/score/${resultType}`, { method: "POST" });
+            document.getElementById("result").innerText = `You chose ${playerChoice}, Computer chose ${computerChoice}. You ${resultType.slice(0, -1)}!`;
+            fetchScore();
+        } catch (error) {
+            console.error("Error updating score:", error);
+        }
+    }
+
+    async function resetScore() {
+        try {
+            await fetch("http://localhost:8080/score", { method: "DELETE" });
+            fetchScore();
+        } catch (error) {
+            console.error("Error resetting score:", error);
+        }
+    }
+
+    window.onload = fetchScore;
+</script>
+</body>
+</html>

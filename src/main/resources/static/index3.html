@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors</title>
+    <script>
+        async function fetchScore() {
+            const response = await fetch("http://localhost:8080/score");
+            const data = await response.json();
+            document.getElementById("wins").innerText = data.wins;
+            document.getElementById("losses").innerText = data.losses;
+            document.getElementById("ties").innerText = data.ties;
+        }
+
+        function getComputerChoice() {
+            const choices = ["rock", "paper", "scissors"];
+            return choices[Math.floor(Math.random() * 3)];
+        }
+
+        async function playGame(playerChoice) {
+            const computerChoice = getComputerChoice();
+            let result;
+
+            if (playerChoice === computerChoice) {
+                result = "tie";
+            } else if (
+                (playerChoice === "rock" && computerChoice === "scissors") ||
+                (playerChoice === "paper" && computerChoice === "rock") ||
+                (playerChoice === "scissors" && computerChoice === "paper")
+            ) {
+                result = "wins";
+            } else {
+                result = "losses";
+            }
+
+            await fetch(`http://localhost:8080/score/${result}`, {
+                method: "POST"
+            });
+
+            document.getElementById("result").innerText = `You chose ${playerChoice}, Computer chose ${computerChoice}. You ${result}!`;
+            fetchScore();
+        }
+
+        async function resetScore() {
+            await fetch("http://localhost:8080/score", {
+                method: "DELETE"
+            });
+            fetchScore();
+        }
+
+        window.onload = fetchScore;
+    </script>
+</head>
+<body>
+<h1>Rock Paper Scissors</h1>
+<p>Wins: <span id="wins">0</span></p>
+<p>Losses: <span id="losses">0</span></p>
+<p>Ties: <span id="ties">0</span></p>
+
+<h2>Choose Your Move</h2>
+<button onclick="playGame('rock')">Rock</button>
+<button onclick="playGame('paper')">Paper</button>
+<button onclick="playGame('scissors')">Scissors</button>
+
+<h2>Game Result</h2>
+<p id="result">Make your choice!</p>
+
+<h2>Reset Score</h2>
+<button onclick="resetScore()">Reset</button>
+</body>
+</html>

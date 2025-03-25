@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score Tracker</title>
+    <script>
+        async function fetchScore() {
+            const response = await fetch("http://localhost:8080/score");
+            const data = await response.json();
+            document.getElementById("wins").innerText = data.wins;
+            document.getElementById("losses").innerText = data.losses;
+            document.getElementById("ties").innerText = data.ties;
+        }
+
+        async function updateScore() {
+            const wins = document.getElementById("inputWins").value;
+            const losses = document.getElementById("inputLosses").value;
+            const ties = document.getElementById("inputTies").value;
+
+            await fetch("http://localhost:8080/score", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ wins: parseInt(wins), losses: parseInt(losses), ties: parseInt(ties) })
+            });
+            fetchScore();
+        }
+
+        async function increment(type) {
+            await fetch(`http://localhost:8080/score/${type}`, {
+                method: "POST"
+            });
+            fetchScore();
+        }
+
+        async function resetScore() {
+            await fetch("http://localhost:8080/score", {
+                method: "DELETE"
+            });
+            fetchScore();
+        }
+
+        window.onload = fetchScore;
+    </script>
+</head>
+<body>
+<h1>Score Tracker</h1>
+<p>Wins: <span id="wins">0</span></p>
+<p>Losses: <span id="losses">0</span></p>
+<p>Ties: <span id="ties">0</span></p>
+
+<h2>Update Score</h2>
+<label>Wins: <input type="number" id="inputWins"></label>
+<label>Losses: <input type="number" id="inputLosses"></label>
+<label>Ties: <input type="number" id="inputTies"></label>
+<button onclick="updateScore()">Update</button>
+
+<h2>Increment Score</h2>
+<button onclick="increment('wins')">+1 Win</button>
+<button onclick="increment('losses')">+1 Loss</button>
+<button onclick="increment('ties')">+1 Tie</button>
+
+<h2>Reset Score</h2>
+<button onclick="resetScore()">Reset</button>
+</body>
+</html>
